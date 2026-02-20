@@ -1,6 +1,7 @@
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+import hashlib
 
 
 def get_embedding_model(model_name: str) -> HuggingFaceEmbeddings:
@@ -29,8 +30,20 @@ def get_vector_store(
 
 
 def add_chunks_to_database(vector_store: Chroma, chunks: list[Document]) -> None:
-    """Adds new document chunks to the existing vector database."""
-    vector_store.add_documents(documents=chunks)
+    """
+    Adds new document chunks to the existing vector database
+    prevents duplicates with hashing.
+    """
+    chunk_ids: list[str] = []
+    for chunk in chunks:
+        source: str = chunk.metadata.get("source", "unknown")
+        page: str = str(chunk.metadata.get("page", "unknown"))
+        content: str = chunk.page_content
+        content_to_hash: str = f"{source}_{page}_{content}"
+        chunk_hash: str = hashlib.md5(content_to_hash.encode("utf-8")).hexdigest()
+        chunk_ids.append(chunk_hash)
+
+    vector_store.add_documents(documents=chunks, ids=chunk_ids)
 
 
 def search_similar_chunks(
