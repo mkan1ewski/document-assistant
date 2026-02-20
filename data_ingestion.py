@@ -4,7 +4,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 def load_and_chunk_pdf(
-    file_path: str, chunk_size: int = 400, chunk_overlap: int = 50
+    file_path: str, chunk_size: int = 1000, chunk_overlap: int = 200
 ) -> list[Document]:
     """Loads a PDF file and splits it into smaller pieces"""
     loader: PyMuPDFLoader = PyMuPDFLoader(file_path)
@@ -13,6 +13,7 @@ def load_and_chunk_pdf(
     splitter: RecursiveCharacterTextSplitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
+        add_start_index=True,
         separators=["\n\n", "\n", ".", " ", ""],
     )
 
