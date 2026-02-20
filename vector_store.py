@@ -2,21 +2,48 @@ from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
-def get_embedding_model(model_name: str) ->  HuggingFaceEmbeddings:
+
+def get_embedding_model(model_name: str) -> HuggingFaceEmbeddings:
     """Downloads and returns the embedding model"""
-    print(f"Loading embedding model: {model_name}...")
-    embedding_model: HuggingFaceEmbeddings = HuggingFaceEmbeddings(model_name=model_name)
+    embedding_model: HuggingFaceEmbeddings = HuggingFaceEmbeddings(
+        model_name=model_name
+    )
     return embedding_model
 
-def get_vector_store(embedding_model: HuggingFaceEmbeddings, db_directory: str = "./chroma_db", collection_name = "general") -> Chroma:
+
+def get_vector_store(
+    embedding_model: HuggingFaceEmbeddings,
+    db_directory: str = "./chroma_db",
+    collection_name="general",
+) -> Chroma:
     """
     Connects to an existing Chroma database or creates a new empty one
     if it doesn't exist at the specified directory.
     """
-    vector_store: Chroma = Chroma(persist_directory=db_directory, embedding_function=embedding_model, collection_name=collection_name)
+    vector_store: Chroma = Chroma(
+        persist_directory=db_directory,
+        embedding_function=embedding_model,
+        collection_name=collection_name,
+    )
     return vector_store
+
 
 def add_chunks_to_database(vector_store: Chroma, chunks: list[Document]) -> None:
     """Adds new document chunks to the existing vector database."""
     vector_store.add_documents(documents=chunks)
 
+
+def search_similar_chunks(
+    vector_store: Chroma, query: str, k: int = 3
+) -> list[tuple[Document, float]]:
+    """
+    Searches the database for the top 'k' chunks most similar to the query.
+    Returns a list of tuples: (Document, distance_score).
+    """
+    print(f"\nSearching for top {k} matches for query: '{query}'...")
+
+    results: list[tuple[Document, float]] = vector_store.similarity_search_with_score(
+        query=query, k=k
+    )
+
+    return results
