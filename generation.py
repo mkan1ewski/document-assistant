@@ -4,17 +4,12 @@ from dataclasses import dataclass
 import ollama
 from langchain_core.documents import Document
 
+from config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K, EMBEDDING_MODEL_NAME
 from vector_store import (
     get_embedding_model,
     get_vector_store,
     search_similar_chunks,
 )
-
-
-DEFAULT_MODEL = "qwen3:30b-a3b"
-DEFAULT_TEMPERATURE = 0.1
-DEFAULT_TOP_K = 5
-EMBEDDING_MODEL = "sdadas/mmlw-retrieval-roberta-large"
 
 SYSTEM_PROMPT = """\
 Jesteś pomocnym asystentem firmowym, który odpowiada na pytania WYŁĄCZNIE
@@ -58,8 +53,8 @@ def _strip_thinking_tags(text: str) -> str:
 def generate_answer(
     query: str,
     context_chunks: list[tuple[Document, float]],
-    model: str = DEFAULT_MODEL,
-    temperature: float = DEFAULT_TEMPERATURE,
+    model: str = LLM_MODEL_NAME,
+    temperature: float = LLM_TEMPERATURE,
 ) -> RAGResponse:
     context_text = _format_context(context_chunks)
 
@@ -89,9 +84,9 @@ def generate_answer(
 def ask(
     query: str,
     vector_store,
-    model: str = DEFAULT_MODEL,
-    temperature: float = DEFAULT_TEMPERATURE,
-    top_k: int = DEFAULT_TOP_K,
+    model: str = LLM_MODEL_NAME,
+    temperature: float = LLM_TEMPERATURE,
+    top_k: int = TOP_K,
 ) -> RAGResponse:
     retrieved_chunks = search_similar_chunks(
         vector_store=vector_store, query=query, k=top_k
@@ -123,10 +118,9 @@ def display_response(response: RAGResponse) -> None:
     print(f"{'=' * 60}")
 
 
-
 def main() -> None:
     print("Ładowanie modelu embeddingowego...")
-    embedding_model = get_embedding_model(EMBEDDING_MODEL)
+    embedding_model = get_embedding_model(EMBEDDING_MODEL_NAME)
 
     print("Łączenie z bazą wektorową...")
     vector_db = get_vector_store(
@@ -134,7 +128,7 @@ def main() -> None:
         collection_name="general",
     )
 
-    print(f"\nModel generatywny: {DEFAULT_MODEL}")
+    print(f"\nModel generatywny: {LLM_MODEL_NAME}")
     print("Wpisz pytanie (lub 'q' aby zakończyć):\n")
 
     while True:

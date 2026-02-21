@@ -3,8 +3,12 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 import hashlib
 
+from config import EMBEDDING_MODEL_NAME, DB_DIRECTORY, COLLECTION_NAME
 
-def get_embedding_model(model_name: str) -> HuggingFaceEmbeddings:
+
+def get_embedding_model(
+    model_name: str = EMBEDDING_MODEL_NAME,
+) -> HuggingFaceEmbeddings:
     """Downloads and returns the embedding model"""
     embedding_model: HuggingFaceEmbeddings = HuggingFaceEmbeddings(
         model_name=model_name
@@ -14,8 +18,8 @@ def get_embedding_model(model_name: str) -> HuggingFaceEmbeddings:
 
 def get_vector_store(
     embedding_model: HuggingFaceEmbeddings,
-    db_directory: str = "./chroma_db",
-    collection_name="general",
+    db_directory: str = DB_DIRECTORY,
+    collection_name: str = COLLECTION_NAME,
 ) -> Chroma:
     """
     Connects to an existing Chroma database or creates a new empty one
