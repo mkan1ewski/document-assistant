@@ -4,12 +4,8 @@ from dataclasses import dataclass
 import ollama
 from langchain_core.documents import Document
 
-from config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K, EMBEDDING_MODEL_NAME
-from vector_store import (
-    get_embedding_model,
-    get_vector_store,
-    search_similar_chunks,
-)
+from config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K
+from vector_store import get_store
 
 SYSTEM_PROMPT = """\
 Jesteś pomocnym asystentem firmowym, który odpowiada na pytania WYŁĄCZNIE
@@ -83,14 +79,15 @@ def generate_answer(
 
 def ask(
     query: str,
-    vector_store,
+    store=None,
     model: str = LLM_MODEL_NAME,
     temperature: float = LLM_TEMPERATURE,
     top_k: int = TOP_K,
 ) -> RAGResponse:
-    retrieved_chunks = search_similar_chunks(
-        vector_store=vector_store, query=query, k=top_k
-    )
+    if store is None:
+        store = get_store()
+
+    retrieved_chunks = store.search(query=query, k=top_k)
 
     response = generate_answer(
         query=query,
@@ -119,14 +116,7 @@ def display_response(response: RAGResponse) -> None:
 
 
 def main() -> None:
-    print("Ładowanie modelu embeddingowego...")
-    embedding_model = get_embedding_model(EMBEDDING_MODEL_NAME)
-
-    print("Łączenie z bazą wektorową...")
-    vector_db = get_vector_store(
-        embedding_model=embedding_model,
-        collection_name="general",
-    )
+    store = get_store()
 
     print(f"\nModel generatywny: {LLM_MODEL_NAME}")
     print("Wpisz pytanie (lub 'q' aby zakończyć):\n")
@@ -140,7 +130,7 @@ def main() -> None:
             continue
 
         try:
-            response = ask(query=query, vector_store=vector_db)
+            response = ask(query=query, store=store)
             display_response(response)
         except Exception as error:
             print(f"\nBłąd: {error}")

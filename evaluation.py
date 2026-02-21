@@ -1,10 +1,8 @@
 import json
 from dataclasses import dataclass
 from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
 
-from vector_store import get_embedding_model, get_vector_store, search_similar_chunks
+from vector_store import get_store, VectorStore
 
 
 @dataclass
@@ -31,7 +29,7 @@ def load_test_cases_from_json(file_path: str) -> list[RetrievalTestCase]:
 
 
 def evaluate_retrieval(
-    vector_store: Chroma, test_cases: list[RetrievalTestCase], k: int = 3
+    store: VectorStore, test_cases: list[RetrievalTestCase], k: int = 3
 ) -> float:
     """Runs evaluation against a list of test cases and returns the Hit Rate."""
     successful_hits: int = 0
@@ -40,8 +38,8 @@ def evaluate_retrieval(
     for index, test in enumerate(test_cases, start=1):
         print(f"\n[Test {index}/{total_tests}] Query: '{test.query}'")
 
-        results: list[tuple[Document, float]] = search_similar_chunks(
-            vector_store=vector_store, query=test.query, k=k
+        results: list[tuple[Document, float]] = store.search(
+            query=test.query, k=k
         )
 
         retrieved_pages: list[int] = []
@@ -74,17 +72,12 @@ def evaluate_retrieval(
 
 
 def main() -> None:
-    embedding_model: HuggingFaceEmbeddings = get_embedding_model(
-        "sdadas/mmlw-retrieval-roberta-large"
-    )
-    vector_db: Chroma = get_vector_store(
-        embedding_model=embedding_model, collection_name="general"
-    )
+    store = get_store()
 
     dataset_path: str = "golden_dataset.json"
     test_cases: list[RetrievalTestCase] = load_test_cases_from_json(dataset_path)
 
-    evaluate_retrieval(vector_store=vector_db, test_cases=test_cases, k=5)
+    evaluate_retrieval(store=store, test_cases=test_cases, k=5)
 
 
 if __name__ == "__main__":
