@@ -3,6 +3,7 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from config import CHUNK_SIZE, CHUNK_OVERLAP
+from vector_store import get_store
 
 
 def load_and_chunk_pdf(
@@ -21,3 +22,14 @@ def load_and_chunk_pdf(
 
     chunks: list[Document] = splitter.split_documents(documents)
     return chunks
+
+
+def ingest_pdf(file_path: str, store=None) -> int:
+    """Ingests pdf into database"""
+    if store is None:
+        store = get_store()
+
+    chunks: list[Document] = load_and_chunk_pdf(file_path)
+    store.add_chunks(chunks)
+
+    return len(chunks)

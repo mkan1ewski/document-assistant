@@ -17,9 +17,7 @@ class VectorStore:
         """
         Creates or connects to existing database
         """
-        self._embedding_model = HuggingFaceEmbeddings(
-            model_name=embedding_model_name
-        )
+        self._embedding_model = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
         self._chroma = Chroma(
             persist_directory=db_directory,
@@ -45,9 +43,7 @@ class VectorStore:
         if new_chunks:
             self._chroma.add_documents(documents=new_chunks, ids=new_ids)
 
-    def search(
-        self, query: str, k: int = TOP_K
-    ) -> list[tuple[Document, float]]:
+    def search(self, query: str, k: int = TOP_K) -> list[tuple[Document, float]]:
         """
         Searches for k most similar chunks.
         """
