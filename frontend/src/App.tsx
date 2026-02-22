@@ -1,9 +1,7 @@
+import Chat from "./Chat";
+
 function App() {
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-gray-800">Chat</h1>
-    </div>
-  )
+  return <Chat />;
 }
 
-export default App
+export default App;
