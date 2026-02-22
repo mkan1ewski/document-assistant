@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 from rag.generation import ask, RAGResponse
 from rag.data_ingestion import ingest_pdf
@@ -19,6 +20,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="RAG API", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class AskRequest(BaseModel):
