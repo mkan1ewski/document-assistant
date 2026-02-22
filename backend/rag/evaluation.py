@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from langchain_core.documents import Document
 
-from vector_store import get_store, VectorStore
+from rag.vector_store import get_store, VectorStore
 
 
 @dataclass
@@ -72,7 +72,7 @@ def evaluate_retrieval(
 def main() -> None:
     store = get_store()
 
-    dataset_path: str = "golden_dataset.json"
+    dataset_path: str = "../data/golden_dataset.json"
     test_cases: list[RetrievalTestCase] = load_test_cases_from_json(dataset_path)
 
     evaluate_retrieval(store=store, test_cases=test_cases, k=5)

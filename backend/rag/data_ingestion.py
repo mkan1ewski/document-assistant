@@ -2,8 +2,8 @@ from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from config import CHUNK_SIZE, CHUNK_OVERLAP
-from vector_store import get_store
+from rag.config import CHUNK_SIZE, CHUNK_OVERLAP
+from rag.vector_store import get_store
 
 
 def load_and_chunk_pdf(

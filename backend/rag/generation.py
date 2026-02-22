@@ -4,8 +4,8 @@ from dataclasses import dataclass
 import ollama
 from langchain_core.documents import Document
 
-from config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K
-from vector_store import get_store
+from rag.config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K
+from rag.vector_store import get_store
 
 SYSTEM_PROMPT = """\
 Jesteś pomocnym asystentem firmowym, który odpowiada na pytania WYŁĄCZNIE

@@ -4,7 +4,7 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 
-from config import EMBEDDING_MODEL_NAME, DB_DIRECTORY, COLLECTION_NAME, TOP_K
+from rag.config import EMBEDDING_MODEL_NAME, DB_DIRECTORY, COLLECTION_NAME, TOP_K
 
 
 class VectorStore:
