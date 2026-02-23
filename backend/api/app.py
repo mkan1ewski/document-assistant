@@ -34,6 +34,7 @@ class AskRequest(BaseModel):
 
 class SourceInfo(BaseModel):
     """Information about one chunk used for answer"""
+
     document: str
     page: int
     score: float
@@ -62,7 +63,9 @@ def handle_ask(request: AskRequest):
         document_name = Path(source_path).stem if source_path else "nieznany"
         page_index = doc.metadata.get("page", -1)
         page_num = int(page_index) + 1 if page_index != -1 else -1
-        sources.append(SourceInfo(document=document_name, page=page_num, score=round(score, 4)))
+        sources.append(
+            SourceInfo(document=document_name, page=page_num, score=round(score, 4))
+        )
 
     return AskResponse(answer=response.answer, sources=sources)
 

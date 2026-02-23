@@ -30,6 +30,6 @@ def ingest_pdf(file_path: str, store=None) -> int:
         store = get_store()
 
     chunks: list[Document] = load_and_chunk_pdf(file_path)
-    store.add_chunks(chunks)
+    added_count = store.add_chunks(chunks)
 
-    return len(chunks)
+    return added_count

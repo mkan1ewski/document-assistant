@@ -36,10 +36,10 @@ class VectorStore:
 
         self._reranker = CrossEncoder(rerank_model_name)
 
-    def add_chunks(self, chunks: list[Document]) -> None:
+    def add_chunks(self, chunks: list[Document]) -> int:
         """
         Adds chunks to the database.
-        Skips duplicates.
+        Skips duplicates. Returns the number of newly added chunks.
         """
         candidate_ids = [self._generate_chunk_id(chunk) for chunk in chunks]
         existing_ids: set[str] = set(self._chroma.get()["ids"])
@@ -53,6 +53,8 @@ class VectorStore:
 
         if new_chunks:
             self._chroma.add_documents(documents=new_chunks, ids=new_ids)
+
+        return len(new_chunks)
 
     def search(self, query: str, k: int = TOP_K) -> list[tuple[Document, float]]:
         """
