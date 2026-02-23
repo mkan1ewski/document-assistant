@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import UploadModal from "./UploadModal";
 
 
 interface Source {
@@ -19,6 +20,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +75,18 @@ export default function Chat() {
         <p className="text-sm text-stone-400">
           Zadawaj pytania na podstawie dokumentów
         </p>
+      <button
+          onClick={() => setIsUploadOpen(true)}
+          className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-600 hover:bg-stone-100 transition-colors"
+        >
+          + Dodaj PDF
+        </button>
       </header>
+
+      <UploadModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+      />
 
       {/* Message list */}
       <main className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
