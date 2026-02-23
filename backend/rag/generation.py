@@ -20,6 +20,22 @@ Zasady:
 - Jeśli to możliwe, wskaż z której strony dokumentu pochodzi informacja.
 """
 
+CHAT_SYSTEM_PROMPT = """\
+Jesteś pomocnym asystentem firmowym. Odpowiadaj zwięźle i przyjaźnie, po polsku.
+Możesz prowadzić swobodną rozmowę, ale jeśli użytkownik zada pytanie
+wymagające wiedzy z dokumentów, poinformuj go, że może zadać pytanie
+dotyczące dokumentów.
+"""
+
+INTENT_SYSTEM_PROMPT = """\
+Zdecyduj czy wiadomość użytkownika to pytanie wymagające szukania w dokumentach,
+czy zwykła rozmowa (powitanie, small talk, podziękowanie itp.).
+
+Odpowiedz JEDNYM słowem:
+- RAG — jeśli to pytanie do dokumentów
+- CHAT — jeśli to zwykła rozmowa
+"""
+
 
 @dataclass
 class RAGResponse:
@@ -77,6 +93,41 @@ def generate_answer(
     )
 
 
+def _classify_intent(query: str, model: str = LLM_MODEL_NAME) -> str:
+    """Classifies intent: normal conversation or technical question"""
+    response = ollama.chat(
+        model=model,
+        messages=[
+            {"role": "system", "content": INTENT_SYSTEM_PROMPT},
+            {"role": "user", "content": query + "\n/nothink"},
+        ],
+        options={"temperature": 0.0},
+    )
+
+    answer = _strip_thinking_tags(response["message"]["content"]).strip().upper()
+    return "RAG" if "RAG" in answer else "CHAT"
+
+
+def _chat_response(query: str, model: str = LLM_MODEL_NAME) -> RAGResponse:
+    """Generates a conversational answer without contextual documents."""
+    response = ollama.chat(
+        model=model,
+        messages=[
+            {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+            {"role": "user", "content": query + "\n/nothink"},
+        ],
+        options={"temperature": 0.3},
+    )
+
+    answer_text = _strip_thinking_tags(response["message"]["content"])
+
+    return RAGResponse(
+        answer=answer_text,
+        source_chunks=[],
+        model=model,
+    )
+
+
 def ask(
     query: str,
     store=None,
@@ -84,6 +135,11 @@ def ask(
     temperature: float = LLM_TEMPERATURE,
     top_k: int = TOP_K,
 ) -> RAGResponse:
+    intent = _classify_intent(query, model=model)
+
+    if intent == "CHAT":
+        return _chat_response(query, model=model)
+
     if store is None:
         store = get_store()
 
