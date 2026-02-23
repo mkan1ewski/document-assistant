@@ -33,7 +33,13 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
       if (!res.ok) throw new Error(`Błąd serwera: ${res.status}`);
 
       const data = await res.json();
-      setResult(`Dodano "${data.filename}" — ${data.chunks_added} fragmentów.`);
+
+      if (data.chunks_added === 0) {
+        setResult(`Dokument "${data.filename}" znajduje się już w bazie.`);
+      } else {
+        setResult(`Pomyślnie dodano dokument "${data.filename}".`);
+      }
+
     } catch {
       setResult("Błąd połączenia z serwerem.");
     } finally {
