@@ -3,8 +3,16 @@ import hashlib
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
+from sentence_transformers import CrossEncoder
 
-from rag.config import EMBEDDING_MODEL_NAME, DB_DIRECTORY, COLLECTION_NAME, TOP_K
+from rag.config import (
+    EMBEDDING_MODEL_NAME,
+    DB_DIRECTORY,
+    COLLECTION_NAME,
+    TOP_K,
+    RERANK_INITIAL_K,
+    RERANK_MODEL_NAME,
+)
 
 
 class VectorStore:
@@ -13,6 +21,7 @@ class VectorStore:
         embedding_model_name: str = EMBEDDING_MODEL_NAME,
         db_directory: str = DB_DIRECTORY,
         collection_name: str = COLLECTION_NAME,
+        rerank_model_name: str = RERANK_MODEL_NAME,
     ) -> None:
         """
         Creates or connects to existing database
@@ -24,6 +33,8 @@ class VectorStore:
             embedding_function=self._embedding_model,
             collection_name=collection_name,
         )
+
+        self._reranker = CrossEncoder(rerank_model_name)
 
     def add_chunks(self, chunks: list[Document]) -> None:
         """
@@ -49,6 +60,31 @@ class VectorStore:
         """
         return self._chroma.similarity_search_with_score(query=query, k=k)
 
+    def search_with_rerank(
+        self,
+        query: str,
+        initial_k: int = RERANK_INITIAL_K,
+        final_k: int = TOP_K,
+    ) -> list[tuple[Document, float]]:
+        """
+        Two step searching, initial k chunks from database,
+        then reranking with cross encoder.
+        """
+        candidates = self._chroma.similarity_search_with_score(query=query, k=initial_k)
+
+        if not candidates:
+            return []
+
+        docs = [doc for doc, _ in candidates]
+        pairs = [[query, doc.page_content] for doc in docs]
+
+        scores = self._reranker.predict(pairs)
+
+        scored_results = list(zip(docs, scores))
+        scored_results.sort(key=lambda x: x[1], reverse=True)
+
+        return [(doc, float(score)) for doc, score in scored_results[:final_k]]
+
     def count(self) -> int:
         """Returns count of chunks in database."""
         return len(self._chroma.get()["ids"])
@@ -63,10 +99,6 @@ class VectorStore:
         content_to_hash = f"{source}_{page}_{content}"
         return hashlib.md5(content_to_hash.encode("utf-8")).hexdigest()
 
-
-# ─── Fabryka: get_store() ────────────────────────────────────────
-# Trzyma jedną instancję w zmiennej modułowej. Każde wywołanie
-# get_store() zwraca ten sam obiekt — nie tworzy nowego połączenia.
 
 _default_store: VectorStore | None = None
 

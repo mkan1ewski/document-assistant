@@ -87,7 +87,7 @@ def ask(
     if store is None:
         store = get_store()
 
-    retrieved_chunks = store.search(query=query, k=top_k)
+    retrieved_chunks = store.search_with_rerank(query=query)
 
     response = generate_answer(
         query=query,

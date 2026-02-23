@@ -38,7 +38,9 @@ def evaluate_retrieval(
     for index, test in enumerate(test_cases, start=1):
         print(f"\n[Test {index}/{total_tests}] Query: '{test.query}'")
 
-        results: list[tuple[Document, float]] = store.search(query=test.query, k=k)
+        results: list[tuple[Document, float]] = store.search_with_rerank(
+            query=test.query
+        )
 
         retrieved_pages: list[int] = []
         for doc, _ in results:
