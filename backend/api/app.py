@@ -34,7 +34,7 @@ class AskRequest(BaseModel):
 
 class SourceInfo(BaseModel):
     """Information about one chunk used for answer"""
-
+    document: str
     page: int
     score: float
 
@@ -58,9 +58,11 @@ def handle_ask(request: AskRequest):
 
     sources = []
     for doc, score in response.source_chunks:
+        source_path = doc.metadata.get("source", "")
+        document_name = Path(source_path).stem if source_path else "nieznany"
         page_index = doc.metadata.get("page", -1)
         page_num = int(page_index) + 1 if page_index != -1 else -1
-        sources.append(SourceInfo(page=page_num, score=round(score, 4)))
+        sources.append(SourceInfo(document=document_name, page=page_num, score=round(score, 4)))
 
     return AskResponse(answer=response.answer, sources=sources)
 
@@ -70,17 +72,17 @@ async def handle_upload(file: UploadFile):
     """
     Uploads a PDF file to database.
     """
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        content = await file.read()
-        tmp.write(content)
-        tmp_path = tmp.name
+    original_filename = file.filename or "unknown.pdf"
 
-    try:
-        chunks_added = ingest_pdf(file_path=tmp_path)
-    finally:
-        Path(tmp_path).unlink(missing_ok=True)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_file_path = Path(temp_dir) / original_filename
+
+        content = await file.read()
+        temp_file_path.write_bytes(content)
+
+        chunks_added = ingest_pdf(file_path=str(temp_file_path))
 
     return UploadResponse(
-        filename=file.filename or "unknown.pdf",
+        filename=original_filename,
         chunks_added=chunks_added,
     )

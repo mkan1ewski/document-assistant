@@ -3,6 +3,7 @@ import UploadModal from "./UploadModal";
 
 
 interface Source {
+  document: string;
   page: number;
   score: number;
 }
@@ -115,12 +116,14 @@ export default function Chat() {
               {/* Sources shown for assistant */}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-stone-100 flex flex-wrap gap-2">
-                  {msg.sources.map((src, j) => (
+                  {[...new Map(
+                    msg.sources.map((src) => [`${src.document}:${src.page}`, src])
+                  ).values()].map((src, j) => (
                     <span
                       key={j}
                       className="text-xs text-stone-400 bg-stone-50 border border-stone-100 rounded-full px-2 py-0.5"
                     >
-                      str. {src.page}
+                      {src.document}, str. {src.page}
                     </span>
                   ))}
                 </div>
