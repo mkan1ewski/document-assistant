@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -12,6 +14,10 @@ def load_and_chunk_pdf(
     """Loads a PDF file and splits it into smaller pieces"""
     loader: PyMuPDFLoader = PyMuPDFLoader(file_path)
     documents: list[Document] = loader.load()
+
+    clean_filename = Path(file_path).name
+    for doc in documents:
+        doc.metadata["source"] = clean_filename
 
     splitter: RecursiveCharacterTextSplitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
