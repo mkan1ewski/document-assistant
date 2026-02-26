@@ -28,6 +28,20 @@ services:
     depends_on:
       - ollama
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: chat_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
 volumes:
   chroma_data:
   ollama_data:
