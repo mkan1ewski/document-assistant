@@ -4,8 +4,10 @@ from dataclasses import dataclass
 import ollama
 from langchain_core.documents import Document
 
-from rag.config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K
+from rag.config import LLM_MODEL_NAME, LLM_TEMPERATURE, TOP_K, OLLAMA_HOST
 from rag.vector_store import get_store
+
+_client = ollama.Client(host=OLLAMA_HOST)
 
 SYSTEM_PROMPT = """\
 Jesteś pomocnym asystentem firmowym, który odpowiada na pytania WYŁĄCZNIE
@@ -72,7 +74,7 @@ def generate_answer(
 
     user_message = f"Kontekst:\n{context_text}\n\nPytanie: {query}"
 
-    response = ollama.chat(
+    response = _client.chat(
         model=model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -95,7 +97,7 @@ def generate_answer(
 
 def _classify_intent(query: str, model: str = LLM_MODEL_NAME) -> str:
     """Classifies intent: normal conversation or technical question"""
-    response = ollama.chat(
+    response = _client.chat(
         model=model,
         messages=[
             {"role": "system", "content": INTENT_SYSTEM_PROMPT},
@@ -110,7 +112,7 @@ def _classify_intent(query: str, model: str = LLM_MODEL_NAME) -> str:
 
 def _chat_response(query: str, model: str = LLM_MODEL_NAME) -> RAGResponse:
     """Generates a conversational answer without contextual documents."""
-    response = ollama.chat(
+    response = _client.chat(
         model=model,
         messages=[
             {"role": "system", "content": CHAT_SYSTEM_PROMPT},
